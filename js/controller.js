@@ -101,10 +101,12 @@
       window.addEventListener('onlogout', _onlogout);
       window.addEventListener('onloginerror', _onloginerror);
 
-      // Start listening activities
-      Activities.init();
+      Settings.init().then(function() {
+        // Start listening activities
+        Activities.init();
 
-      AccountHelper.init(_onnotification);
+        AccountHelper.init(_onnotification);
+      });
     },
 
     authenticate: function(id) {

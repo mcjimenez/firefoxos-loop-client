@@ -5,6 +5,8 @@
       _cleanCallsButton, _cleanUrlsButton, _videoDefaultSettings,
       _commitHashTag, _cameraDefaultSettings, _loggedAs, _vibrateSettings;
 
+  var _initialized = false;
+
   const SETTINGS_ITEM = 'settings';
 
   const _SETTING_DEFAULTS = {
@@ -54,6 +56,13 @@
 
     init: function s_init(identity) {
       _identity = identity;
+
+      if (_initialized) {
+        return;
+      }
+
+      _initialized = true;
+
       if (!_settingsPanel) {
         // Cache mozL10n functionality
         _ = navigator.mozL10n.get;
@@ -198,32 +207,33 @@
       // Set the value of the default mode (video/audio)
       // Set settings values.
       // Currently video/audio, camera front/back and vibration mode
-      asyncStorage.getItem(
-        SETTINGS_ITEM,
-        function onSettingRetrieved(settingValues) {
-          if (!settingValues) {
-            Settings.reset();
-          } else {
-            _settingValues = settingValues;
-          }
-          _setVisualSettingValues(settingValues);
+      _videoDefaultSettings.addEventListener('change', _settingHandler);
+      _vibrateSettings.addEventListener('change', _settingHandler);
 
-          _videoDefaultSettings.addEventListener(
-            'change', _settingHandler);
-          _vibrateSettings.addEventListener(
-            'change', _settingHandler);
+      return new Promise(function(resolve, reject) {
+        asyncStorage.getItem(
+          SETTINGS_ITEM,
+          function onSettingRetrieved(settingValues) {
+            if (!settingValues) {
+              Settings.reset();
+            } else {
+              _settingValues = settingValues;
+            }
+            _setVisualSettingValues(settingValues);
 
-          // Set the value of the default camera if needed
-          if (!navigator.mozCameras &&
-              navigator.mozCameras.getListOfCameras().length < 2) {
-            _settingValues.frontCamera = false;
-            _cameraDefaultSettings.parentNode.parentNode.style.display = 'none';
-          } else {
-            _cameraDefaultSettings.addEventListener(
-              'change', _settingHandler);
+
+            // Set the value of the default camera if needed
+            if (!navigator.mozCameras &&
+                navigator.mozCameras.getListOfCameras().length < 2) {
+              _settingValues.frontCamera = false;
+              _cameraDefaultSettings.parentNode.parentNode.style.display = 'none';
+            } else {
+              _cameraDefaultSettings.addEventListener('change', _settingHandler);
+            }
+            resolve();
           }
-        }
-      );
+        );
+      });
     },
 
     localize: function s_localize() {
@@ -260,6 +270,11 @@
       }
       _settingsPanel.classList.remove('show');
     },
+
+    set identity(ident) {
+      _identity = ident;
+    },
+
     get isVideoDefault() {
       return _settingValues.video;
     },

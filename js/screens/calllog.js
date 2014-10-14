@@ -876,7 +876,7 @@
       document.body.dataset.layout = 'calllog';
 
       // Initialize Settings
-      Settings.init(identity);
+      Settings.identity = identity;
 
       if (_initialized) {
         return;

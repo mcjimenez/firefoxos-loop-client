@@ -33,7 +33,8 @@
   // We only care about cellular or wifi.
   const CALLS_WITH_CELLULAR = 'callsWithCellular';
   const CALLS_WITH_WIFI = 'callsWithWifi';
-
+  const AUDIO_CODEC_NAME = 'audioCodecName';
+  const VIDEO_CODEC_NAME = 'videoCodecName';
   const LAST_REPORT = 'telemetry-last-report';
 
   const THROTTLE_DELAY = 10 * 1000; // 10 sec
@@ -78,6 +79,8 @@
        this[type] = 0;
     });
     this[CALLS_DURATION] = [];
+    this[AUDIO_CODEC_NAME] = [];
+    this[VIDEO_CODEC_NAME] = [];
   }
 
   function Telemetry() {
@@ -151,7 +154,17 @@
         }
 
         if (report[type] == undefined) {
-          throw new Error('Unknown metric type ' + type);
+          var newReport = new TelemetryReport();
+          if (newReport[type] == undefined) {
+            throw new Error('Unknown metric type ' + type);
+          } else {
+            // Copy the new fields..
+            for(var key in newReport) {
+              if (report[key] == undefined) {
+                report[key] = newReport[key];
+              }
+            }
+          }
         }
 
         (report[type].push && report[type].push(value)) || report[type]++;
@@ -227,6 +240,20 @@
         return;
       }
       this._updateReport(CALLS_DURATION, duration);
+    },
+
+    recordAudioCodec: function(codec) {
+      if (codec === undefined || codec === null) {
+        return;
+      }
+      this._updateReport(AUDIO_CODEC_NAME, codec);
+    },
+
+    recordVideoCodec: function(codec) {
+      if (codec === undefined || codec === null) {
+        return;
+      }
+      this._updateReport(VIDEO_CODEC_NAME, codec);
     }
 
   };
